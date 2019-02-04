@@ -14,7 +14,7 @@
 void move_ship (pos *ship, u_int8 ship_size)
 {
 
-				switch (serial_input_character()) {
+				switch (serial_get_last_char()) {
 				case 'd' :
 					if (ship->x <= ( (VT100_SCREEN_XMAX-1) - ship_size*2))
 					{
@@ -50,7 +50,7 @@ void serial_putship ()
 void serial_shoot (shoot_pos *shoot_tab, u_int8 i)
 {
 	vt100_move (shoot_tab[i].x,shoot_tab[i].y);
-	serial_puts ("|\n\b|");
+	serial_puts ("");
 
 	return;
 }
@@ -147,15 +147,15 @@ void delay (unsigned long a)
 void ennemy_shooting (pos *ennemy_tab, shoot_pos *shoot_tab)
 {
 	u_int8 j = 0;
-	for (u_int8 i = 0; i <= 29; i++)	//chaque emplacement de vaisseau ennemi dans leur tableau
+	for (u_int8 i = 0; i <= 29; i++)
 	{
-		if ((ennemy_tab[i].x != 0)&&(ennemy_tab[i].y != 0))		//looking at all ships
+		if ((ennemy_tab[i].x != 0)&&(ennemy_tab[i].y != 0))
 		{
 			if (Ps_RandomNumberGeneratory() <= 35)	// tir ?
 			{
-				while ((shoot_tab[j].x != 0)&&(shoot_tab[j].y != 0) )	//same as earlier, can't use =!
+				while ((shoot_tab[j].x != 0)&&(shoot_tab[j].y != 0) )
 				{
-					j++;											//continue the tab until a clear adress to stock the shoot
+					j++;											//continue the tab until a clear address to stock the shoot
 				}
 					shoot_tab[j].x = ennemy_tab[i].x+2;
 					shoot_tab[j].y = ennemy_tab[i].y+1;
@@ -176,7 +176,7 @@ u_int8 Ps_RandomNumberGeneratory ()
 	return PRNG;
 }
 
-void hitbox (pos *ennemy_tab, shoot_pos *shoot_tab, pos *ship, u_int8 ennemy_lenght )
+void hitbox (pos *ennemy_tab, shoot_pos *shoot_tab, pos *ship, u_int8 ennemy_lenght, u_int8 *alive )
 {
 	u_int8 ennemy_index;
 	u_int8 shoot_index;
@@ -221,6 +221,8 @@ void hitbox (pos *ennemy_tab, shoot_pos *shoot_tab, pos *ship, u_int8 ennemy_len
 					serial_puts (" \n\b ");
 					shoot_tab[shoot_index].x = 0;
 					shoot_tab[shoot_index].y = 0;
+					// Defeat
+					*alive = 0;
 				}
 			}
 		}
@@ -235,7 +237,7 @@ void ally_shooting (u_int8 *cd_shoot,shoot_pos *shoot_tab )
 	*cd_shoot %=  5;
 	if (*cd_shoot == 1)
 	{
-		while ((shoot_tab[j].x != 0)&&(shoot_tab[j].y != 0) )	//same as earlier, can't use =!
+		while ((shoot_tab[j].x != 0)&&(shoot_tab[j].y != 0) )
 		{
 			j++;											//continue the tab until a clear adress to stock the shoot
 		}
@@ -245,5 +247,11 @@ void ally_shooting (u_int8 *cd_shoot,shoot_pos *shoot_tab )
 		vt100_move (shoot_tab[j].x,shoot_tab[j].y);
 		serial_puts ("|\n\b|");
 	}
+	return;
+}
+
+void ennemy_moving (pos *ennemy_tab)
+{
+
 	return;
 }

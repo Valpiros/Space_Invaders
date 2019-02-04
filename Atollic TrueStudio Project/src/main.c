@@ -62,68 +62,120 @@ u_int8 PRNG = 43;		//Random value to start with
 
 int main(void)
 {
-	/** GAME INIT **/
-
+	/* Init com */
 	serial_init(115200);
+
+	u_int8 play = 1;
+	state game = INIT;
+	while (play)
+	{
+		switch (game)
+		{
+		case INIT :
+
+			/* Init border */
+			vt100_clear_screen();
+			border_init ();
+
+			/* Var Init */
+			//	Init Ennemy fleet table
+			pos ennemy_tab[30];
+			for (u_int8 i=0; i<=29; i++)
+			{
+				ennemy_tab[i].x = 0;
+				ennemy_tab[i].y = 0;
+			}
+
+			// Init shoot table
+			shoot_pos shoot_tab[30];
+			for (u_int8 i=0; i<=29; i++)
+			{
+				shoot_tab[i].x = 0;
+				shoot_tab[i].y = 0;
+				shoot_tab[i].who = shoot_ennemy;
+			}
+
+			// Serial reception init
+			u_int8 serial_char = serial_get_last_char();
+
+		case LOGO :
+			// TODO make a beautiful logo
+		{
+			u_int8 a = '3';
+			while (1)
+			{
+				delay (4500000);
+				vt100_move(45, 15);
+				serial_putchar (a);
+				if (a == '0')
+				{
+					vt100_move(45, 15);
+					serial_putchar (' ');
+					break;
+				}
+				a--;
+			}
+		}
+		case TEST :
+			// if needs only
+
+		case START :
+
+			//Creating ship at initial position
+			ship.x=62;
+			ship.y=34;
+			vt100_move(ship.x,ship.y);
+			serial_putship();
+			u_int8 alive = 1;
+			u_int8 cd_shoot = 0;
+
+			//Creating ennemy fleet
+			u_int8 lenght_type1 = 0;
+			ennemy_type1 (ennemy_tab, &lenght_type1);
+
+			//Time before launch (with tIMER soon)
+			delay(12000000);
+
+		case WORKING :
+			while (alive == 1)
+			{
+				// Ally moving
+				move_ship (&ship, ship_size);
+
+				// Ennemy fleet moving
+				ennemy_shooting (ennemy_tab, shoot_tab);
+				ennemy_moving (ennemy_tab);
+
+				// Ship Shooting
+				ally_shooting (&cd_shoot, shoot_tab);
+
+				// Something got hit ?
+				hitbox (ennemy_tab, shoot_tab, &ship, lenght_type1, &alive);
+
+				// Shoots moving
+				move_shoots (shoot_tab);
+
+				// TODO delay, between turns, randomly modifiable for now
+				delay (2000000);
+			}
+		case END :
+			vt100_clear_screen();
+			vt100_move(65, 17);
+			serial_puts ("You have been defeated ...");
+			vt100_move(50, 30);
+			serial_puts ("Do you want to retry ? n for no");
+			serial_char = serial_get_last_char();
+			while (serial_char == -1);
+			if (serial_char == 'n')
+			{
+				play = 0;
+			}
+			else;
+			break;
+		}
+	}
 	vt100_clear_screen();
-	border_init ();
-	/* Var Init */
-	//	Init Ennemy fleet table
-	pos ennemy_tab[30];
-	for (u_int8 i=0; i<=29; i++)
-	{
-		ennemy_tab[i].x = 0;
-		ennemy_tab[i].y = 0;
-	}
-
-	//Init shoot table
-	shoot_pos shoot_tab[30];
-	for (u_int8 i=0; i<=29; i++)
-	{
-		shoot_tab[i].x = 0;
-		shoot_tab[i].y = 0;
-		shoot_tab[i].who = shoot_ennemy;
-	}
-	u_int8 cd_shoot = 0;
-
-
-	/* End of Var Init */
-
-	//Creating ship at initial position
-	vt100_move(ship.x,ship.y);
-	serial_putship();
-
-
-	//Creating ennemy fleet
-	u_int8 lenght_type1 = 0;
-	ennemy_type1 (ennemy_tab, &lenght_type1);
-
-	// TESTS //
-
-
-
-	/** GAME LAUNCH **/
-	delay(12000000);
-	while (1)
-	{
-
-		// Ennemy fleet moving
-		ennemy_shooting (ennemy_tab, shoot_tab);
-		//ennemy_moving ();
-
-		// Ship Shooting
-		ally_shooting (&cd_shoot, shoot_tab);
-
-		// Something got hit ?
-		hitbox (ennemy_tab, shoot_tab, &ship, lenght_type1);
-
-		// Shoots moving
-		move_shoots (shoot_tab);
-
-
-		// TODO delay, between turns, randomly modifiable for now
-		delay (4000000);
-	}
+	while (1);
 }
 /*
  * Callback used by stm32f4_discovery_audio_codec.c.

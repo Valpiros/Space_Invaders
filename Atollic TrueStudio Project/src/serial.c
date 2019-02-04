@@ -1,12 +1,9 @@
 #include "stm32f4xx_gpio.h"
 #include "stm32f4xx_usart.h"
 #include "serial.h"
-#include <type_others.h>
-#include <vt100.h>
-#include <stdint.h>
 
-extern pos ship;
-
+static unsigned char last_char_read = 1;
+static char last_char;
 
 void serial_init(uint32_t baudrate)
 {
@@ -52,16 +49,6 @@ void serial_init(uint32_t baudrate)
 	USART_Cmd(USART2, ENABLE);
 }
 
-int32_t serial_input_not_empty(void)
-{
-	return USART_GetITStatus(USART2, USART_IT_RXNE);
-}
-
-char serial_input_character(void)
-{
-	return USART2->DR;
-}
-
 void serial_putchar(volatile char c)
 {
 	/* Check USART */
@@ -84,17 +71,36 @@ void serial_puts(volatile char *s)
 		serial_putchar(*s++);
 }
 
+signed char serial_get_last_char(void)
+{
+	if (last_char_read)
+		return -1;
+	else
+	{
+		last_char_read = 1;
+		return last_char;
+	}
+}
+
+/* interruption management */
+
+static int32_t serial_input_not_empty(void)
+{
+	return USART_GetITStatus(USART2, USART_IT_RXNE);
+}
+
+static char serial_input_character(void)
+{
+	return USART2->DR;
+}
+
+#define serial_it_handler USART2_IRQHandler
 void serial_it_handler(void)
 {
 	if (serial_input_not_empty())
 	{
-		/*char c;
-		c = serial_input_character();
-		//as test
-			serial_puts("Reçu : ");
-		serial_putchar(c);
-		serial_putchar('\r');
-		serial_putchar('\n');*/
-		move_ship (&ship, ship_size);
+		last_char = serial_input_character();
+		last_char_read = 0;
 	}
 }
+

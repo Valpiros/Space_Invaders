@@ -28,7 +28,9 @@ typedef struct {
 extern pos ship;
 extern u_int8 ship_size;
 extern u_int8 PRNG;
+
 typedef enum {shoot_ennemy, shoot_ally} team;
+typedef enum {INIT, LOGO,TEST, START, WORKING, END } state;
 
 typedef struct {
 	u_int8 x;
@@ -44,8 +46,9 @@ void move_shoots (shoot_pos *shoot_tab);
 void delay (u_int32 a);
 void ennemy_type1 (pos *ennemy_tab, u_int8 *lenght_ship);
 void ennemy_shooting (pos *ennemy_tab, shoot_pos *shoot_tab);
-void hitbox (pos *ennemy_tab, shoot_pos *shoot_tab, pos *shi, u_int8 lenght);
+void hitbox (pos *ennemy_tab, shoot_pos *shoot_tab, pos *shi, u_int8 lenght, u_int8 *alive);
 u_int8 Ps_RandomNumberGeneratory ();
 void ally_shooting (u_int8 *cd_shoot, shoot_pos *shoot_tab);
+void ennemy_moving (pos *ennemy_tab);
 
 #endif /* TYPE_OTHERS_H_ */
