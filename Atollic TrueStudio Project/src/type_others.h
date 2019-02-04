@@ -17,7 +17,7 @@
 typedef unsigned char u_int8;
 typedef unsigned short u_int16;
 typedef unsigned long u_int32;
-
+typedef char int8;
 
 
 typedef struct {
@@ -39,15 +39,15 @@ typedef struct {
 } shoot_pos;
 
 void move_ship (pos *ship, u_int8 ship_size);
-void serial_putship ();
+void serial_putship (void);
 void serial_shoot (shoot_pos *shoot_tab, u_int8 i);
-void border_init ();
+void border_init (void);
 void move_shoots (shoot_pos *shoot_tab);
 void delay (u_int32 a);
 void ennemy_type1 (pos *ennemy_tab, u_int8 *lenght_ship);
 void ennemy_shooting (pos *ennemy_tab, shoot_pos *shoot_tab);
-void hitbox (pos *ennemy_tab, shoot_pos *shoot_tab, pos *shi, u_int8 lenght, u_int8 *alive);
-u_int8 Ps_RandomNumberGeneratory ();
+void hitbox (pos *ennemy_tab, shoot_pos *shoot_tab, pos *shi, u_int8 lenght, u_int8 *lifes);
+u_int8 Ps_RandomNumberGeneratory (void);
 void ally_shooting (u_int8 *cd_shoot, shoot_pos *shoot_tab);
 void ennemy_moving (pos *ennemy_tab);
 

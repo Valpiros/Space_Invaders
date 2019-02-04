@@ -65,7 +65,7 @@ int main(void)
 	/* Init com */
 	serial_init(115200);
 
-	u_int8 play = 1;
+	u_int8 play = 1;	//start game
 	state game = INIT;
 	while (play)
 	{
@@ -73,11 +73,10 @@ int main(void)
 		{
 		case INIT :
 
-			/* Init border */
+			// Init border
 			vt100_clear_screen();
 			border_init ();
 
-			/* Var Init */
 			//	Init Ennemy fleet table
 			pos ennemy_tab[30];
 			for (u_int8 i=0; i<=29; i++)
@@ -96,7 +95,7 @@ int main(void)
 			}
 
 			// Serial reception init
-			u_int8 serial_char = serial_get_last_char();
+			int8 serial_char = serial_get_last_char();
 
 		case LOGO :
 			// TODO make a beautiful logo
@@ -117,7 +116,7 @@ int main(void)
 			}
 		}
 		case TEST :
-			// if needs only
+			// for debug only
 
 		case START :
 
@@ -126,8 +125,16 @@ int main(void)
 			ship.y=34;
 			vt100_move(ship.x,ship.y);
 			serial_putship();
-			u_int8 alive = 1;
-			u_int8 cd_shoot = 0;
+			u_int8 lifes = 2;		//init number of lives
+			vt100_move (4,2);
+			serial_puts ("Health bar : ");
+			for (u_int8 i = 1; i <= lifes; i++)
+			{
+				vt100_move (17+i,2);
+				serial_putchar (219);
+			}
+
+			u_int8 cd_shoot = 0;	//init shoot cd
 
 			//Creating ennemy fleet
 			u_int8 lenght_type1 = 0;
@@ -137,7 +144,7 @@ int main(void)
 			delay(12000000);
 
 		case WORKING :
-			while (alive == 1)
+			while (lifes >= 1)
 			{
 				// Ally moving
 				move_ship (&ship, ship_size);
@@ -150,7 +157,7 @@ int main(void)
 				ally_shooting (&cd_shoot, shoot_tab);
 
 				// Something got hit ?
-				hitbox (ennemy_tab, shoot_tab, &ship, lenght_type1, &alive);
+				hitbox (ennemy_tab, shoot_tab, &ship, lenght_type1, &lifes);
 
 				// Shoots moving
 				move_shoots (shoot_tab);
@@ -165,7 +172,10 @@ int main(void)
 			vt100_move(50, 30);
 			serial_puts ("Do you want to retry ? n for no");
 			serial_char = serial_get_last_char();
-			while (serial_char == -1);
+			while (serial_char == 0xFF)
+			{
+				serial_char = serial_get_last_char();
+			}
 			if (serial_char == 'n')
 			{
 				play = 0;

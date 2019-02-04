@@ -40,7 +40,7 @@ void move_ship (pos *ship, u_int8 ship_size)
 	return;
 }
 
-void serial_putship ()
+void serial_putship (void)
 {
 	serial_puts("<-A->\0"); // actual ship
 
@@ -55,7 +55,7 @@ void serial_shoot (shoot_pos *shoot_tab, u_int8 i)
 	return;
 }
 
-void border_init ()
+void border_init (void)
 {
 	u_int8 i;
 
@@ -169,14 +169,14 @@ void ennemy_shooting (pos *ennemy_tab, shoot_pos *shoot_tab)
 	return;
 }
 
-u_int8 Ps_RandomNumberGeneratory ()
+u_int8 Ps_RandomNumberGeneratory (void)
 {
 	PRNG = ( ((((PRNG >> 3) & 0x01)^((PRNG >> 4) & 0x01)^((PRNG >> 5) & 0x01)^((PRNG >> 7) & 0x01)) <<7) | (PRNG >> 1) );
 
 	return PRNG;
 }
 
-void hitbox (pos *ennemy_tab, shoot_pos *shoot_tab, pos *ship, u_int8 ennemy_lenght, u_int8 *alive )
+void hitbox (pos *ennemy_tab, shoot_pos *shoot_tab, pos *ship, u_int8 ennemy_lenght, u_int8 *lifes )
 {
 	u_int8 ennemy_index;
 	u_int8 shoot_index;
@@ -221,8 +221,10 @@ void hitbox (pos *ennemy_tab, shoot_pos *shoot_tab, pos *ship, u_int8 ennemy_len
 					serial_puts (" \n\b ");
 					shoot_tab[shoot_index].x = 0;
 					shoot_tab[shoot_index].y = 0;
-					// Defeat
-					*alive = 0;
+					// Got hit
+					vt100_move (17+(*lifes),2);
+					serial_puts ("  ");
+					*lifes -=1;
 				}
 			}
 		}
