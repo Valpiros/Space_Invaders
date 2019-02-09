@@ -14,35 +14,35 @@
 void move_ship (pos *ship, u_int8 ship_size)
 {
 
-				switch (serial_get_last_char()) {
-				case 'd' :
-					if (ship->x <= ( (VT100_SCREEN_XMAX-1) - ship_size*2))
-					{
-						vt100_move(ship->x,ship->y);
-						serial_puts ("     ");
-						ship->x += 5;
-						vt100_move(ship->x,ship->y);
-						serial_putship ();
-					}
-					break;
+	switch (serial_get_last_char()) {
+	case 'd' :
+		if (ship->x <= ( (VT100_SCREEN_XMAX-1) - ship_size*2))
+		{
+			vt100_move(ship->x,ship->y);
+			serial_puts ("     ");
+			ship->x += 5;
+			vt100_move(ship->x,ship->y);
+			serial_putship ();
+		}
+		break;
 
-				case 'q' :
-					if (ship->x >= 1 + ship_size*2)
-					{
-						vt100_move(ship->x,ship->y);
-						serial_puts ("     ");
-						ship->x -= 5;
-						vt100_move(ship->x,ship->y);
-						serial_putship ();
-					}
-					break;
-				}
+	case 'q' :
+		if (ship->x >= 1 + ship_size*2)
+		{
+			vt100_move(ship->x,ship->y);
+			serial_puts ("     ");
+			ship->x -= 5;
+			vt100_move(ship->x,ship->y);
+			serial_putship ();
+		}
+		break;
+	}
 	return;
 }
 
 void serial_putship (void)
 {
-	serial_puts("<-A->\0"); // actual ship
+	serial_puts("<-A->"); // actual ship
 
 	return;
 }
@@ -77,21 +77,26 @@ void border_init (void)
 	return;
 }
 
-void ennemy_type1 (pos *ennemy_tab, u_int8 *lenght_ship)
+void ennemy_type1 (pos *ennemy_tab, u_int8 *lenght_ship, u_int8 *min_x, u_int8 *max_x)
 {
 	u_int8 i;
 	u_int8 distance_ship = 1;
-	u_int8 number_ship = 9;
-	u_int8 init_x = 20;
+	u_int8 number_ship = 15;
+	u_int8 init_x = 10;
 	u_int8 height = 5;
-	*lenght_ship = 7;
+	*lenght_ship = 6;
 
+	*min_x = init_x;
 	for (i=0;i<number_ship;i++)
 	{
 		vt100_move(init_x+(*lenght_ship+distance_ship)*i,height);
-		serial_puts("\\-V+V-/");
+		serial_puts("\\-VV-/");
 		ennemy_tab[i].x = init_x+(*lenght_ship+distance_ship)*i;
 		ennemy_tab[i].y = height;
+		if (i > *max_x)
+		{
+			*max_x = ennemy_tab[i].x;
+		}
 	}
 	return;
 }
@@ -110,23 +115,29 @@ void move_shoots (shoot_pos *shoot_tab)
 			if (shoot_tab[i].who == shoot_ennemy)
 			{
 				shoot_tab[i].y += 2;
+				if (shoot_tab[i].y == 34)
+				{
+					shoot_tab[i].x = 0;
+					shoot_tab[i].y = 0;
+				}
+				vt100_move (shoot_tab[i].x,shoot_tab[i].y);
+				serial_puts ("|\n\b|");
 			}
 			else
 			{
 				shoot_tab[i].y -= 2;
+				if (shoot_tab[i].y == 2)
+				{
+					shoot_tab[i].x = 0;
+					shoot_tab[i].y = 0;
+				}
+				vt100_move (shoot_tab[i].x,shoot_tab[i].y);
+				serial_putchar (186);
+				vt100_move (shoot_tab[i].x,shoot_tab[i].y+1);
+				serial_putchar (186);
 			}
-			if ((shoot_tab[i].y == 34)&&(shoot_tab[i].who == shoot_ennemy))
-			{
-				shoot_tab[i].x = 0;
-				shoot_tab[i].y = 0;
-			}
-			else if ((shoot_tab[i].y == 2)&&(shoot_tab[i].who == shoot_ally))
-			{
-				shoot_tab[i].x = 0;
-				shoot_tab[i].y = 0;
-			}
-			vt100_move (shoot_tab[i].x,shoot_tab[i].y);
-			serial_puts ("|\n\b|");
+
+
 		}
 		i++;
 	}
@@ -157,11 +168,11 @@ void ennemy_shooting (pos *ennemy_tab, shoot_pos *shoot_tab)
 				{
 					j++;											//continue the tab until a clear address to stock the shoot
 				}
-					shoot_tab[j].x = ennemy_tab[i].x+2;
-					shoot_tab[j].y = ennemy_tab[i].y+1;
-					shoot_tab[j].who = shoot_ennemy;
-					vt100_move (shoot_tab[j].x,shoot_tab[j].y);
-					serial_puts ("|\n\b|");
+				shoot_tab[j].x = ennemy_tab[i].x+2;
+				shoot_tab[j].y = ennemy_tab[i].y+1;
+				shoot_tab[j].who = shoot_ennemy;
+				vt100_move (shoot_tab[j].x,shoot_tab[j].y);
+				serial_puts ("|\n\b|");
 			}
 		}
 	}
@@ -176,35 +187,36 @@ u_int8 Ps_RandomNumberGeneratory (void)
 	return PRNG;
 }
 
-void hitbox (pos *ennemy_tab, shoot_pos *shoot_tab, pos *ship, u_int8 ennemy_lenght, u_int8 *lifes )
+void hitbox (pos *ennemy_tab, shoot_pos *shoot_tab, pos *ship, u_int8 ennemy_lenght, u_int8 *lives, u_int8 *min_x, u_int8 *max_x )
 {
 	u_int8 ennemy_index;
 	u_int8 shoot_index;
+	u_int8 i;
 
 	for (shoot_index = 0; shoot_index <= 29; shoot_index++)	//can witn some time using car exist in struct
 	{
 		if (shoot_tab[shoot_index].who == shoot_ally)
 		{
 			for (ennemy_index = 0; ennemy_index <= 29; ennemy_index++)	//can win some time with var ennemy total
+			{
+				if (ennemy_tab[ennemy_index].y+1 == shoot_tab[shoot_index].y)
 				{
-					if (ennemy_tab[ennemy_index].y+1 == shoot_tab[shoot_index].y)
+					if ((shoot_tab[shoot_index].x >= ennemy_tab[ennemy_index].x)&&(shoot_tab[shoot_index].x <= ennemy_tab[ennemy_index].x+(ennemy_lenght-1)))
 					{
-						if ((shoot_tab[shoot_index].x >= ennemy_tab[ennemy_index].x)&&(shoot_tab[shoot_index].x <= ennemy_tab[ennemy_index].x+(ennemy_lenght-1)))
-						{
-							vt100_move (ennemy_tab[ennemy_index].x,ennemy_tab[ennemy_index].y);
-							serial_puts ("XXXXXXX");
-							delay (3000000);
-							vt100_move (ennemy_tab[ennemy_index].x,ennemy_tab[ennemy_index].y);
-							serial_puts ("       ");
-							vt100_move (shoot_tab[shoot_index].x, shoot_tab[shoot_index].y);
-							serial_puts (" \n\b ");
-		                	ennemy_tab[ennemy_index].x = 0;
-		                	ennemy_tab[ennemy_index].y = 0;
-		                	shoot_tab[shoot_index].x = 0;
-		                	shoot_tab[shoot_index].y = 0;
-						}
+						vt100_move (ennemy_tab[ennemy_index].x,ennemy_tab[ennemy_index].y);
+						serial_puts ("XXXXXXX");
+						//delay (3000000); if want little pause when hitting ennemies
+						vt100_move (ennemy_tab[ennemy_index].x,ennemy_tab[ennemy_index].y);
+						serial_puts ("       ");
+						vt100_move (shoot_tab[shoot_index].x, shoot_tab[shoot_index].y);
+						serial_puts (" \n\b ");
+						ennemy_tab[ennemy_index].x = 0;
+						ennemy_tab[ennemy_index].y = 0;
+						shoot_tab[shoot_index].x = 0;
+						shoot_tab[shoot_index].y = 0;
 					}
 				}
+			}
 		}
 		else
 		{
@@ -215,16 +227,24 @@ void hitbox (pos *ennemy_tab, shoot_pos *shoot_tab, pos *ship, u_int8 ennemy_len
 					vt100_move (ship->x,ship->y);
 					serial_puts ("XXXXX");
 					delay (3000000);
-					vt100_move (ship->x,ship->y);
-					serial_puts ("     ");
+					if (*lives == 0 )
+					{
+						vt100_move (ship->x,ship->y);
+						serial_puts ("     ");
+					}
+					else
+					{
+						vt100_move (ship->x,ship->y);
+						serial_putship ();
+					}
 					vt100_move (shoot_tab[shoot_index].x, shoot_tab[shoot_index].y);
 					serial_puts (" \n\b ");
 					shoot_tab[shoot_index].x = 0;
 					shoot_tab[shoot_index].y = 0;
 					// Got hit
-					vt100_move (17+(*lifes),2);
+					vt100_move (17+(*lives),2);
 					serial_puts ("  ");
-					*lifes -=1;
+					*lives -=1;
 				}
 			}
 		}
@@ -247,13 +267,89 @@ void ally_shooting (u_int8 *cd_shoot,shoot_pos *shoot_tab )
 		shoot_tab[j].y = ship.y-2;
 		shoot_tab[j].who = shoot_ally;
 		vt100_move (shoot_tab[j].x,shoot_tab[j].y);
-		serial_puts ("|\n\b|");
+		serial_putchar (186);
+		vt100_move (shoot_tab[j].x,shoot_tab[j].y+1);
+		serial_putchar (186);
 	}
 	return;
 }
 
-void ennemy_moving (pos *ennemy_tab)
+void ennemy_moving (pos *ennemy_tab, direction *fleet, u_int8 *min_x, u_int8 *max_x)
 {
+	u_int8 i;
+	if (*fleet == right)
+	{
+		if (*max_x > 117)
+		{
+			*fleet = left;
+			/*descend*/
+		}
+		else
+		{
+			for (i = 0; i < 30; i++)
+			{
+				if (ennemy_tab[i].x != 0)
+				{
+					vt100_move (ennemy_tab[i].x, ennemy_tab[i].y);
+					serial_puts (" \\-VV-/");
+					ennemy_tab[i].x += 1;
+				}
+			}
+		}
+	}
+	else
+	{
+		if (*min_x <= 3)
+		{
+			*fleet = right;
+		}
+		else
+		{
+			for (i = 0; i < 30; i++)
+			{
+				if (ennemy_tab[i].x != 0)
+				{
+					ennemy_tab[i].x -= 1;
+					vt100_move (ennemy_tab[i].x, ennemy_tab[i].y);
+					serial_puts ("\\-VV-/ ");
+				}
+			}
+		}
+	}
 
 	return;
+}
+
+u_int8 ennemy_defeated (pos *ennemy_tab)
+{
+	u_int8 i;
+	for (i = 0; i <= 29; i++)
+	{
+		if ((ennemy_tab[i].x != 0)||(ennemy_tab[i].y != 0))
+		{
+			return 0;
+			break;
+		}
+	}
+	return 1;
+}
+
+void new_minmax (pos *ennemy_tab, u_int8 *min_x, u_int8 *max_x)
+{
+	//RàZ of man and min
+	*min_x = 125;
+	*max_x = 0;
+	int i;
+	//New value of max and min
+	for (i = 0; i <= 29; i++)
+	{
+		if (ennemy_tab[i].x > *max_x)
+		{
+			*max_x = ennemy_tab[i].x;
+		}
+		if ((ennemy_tab[i].x != 0) && (ennemy_tab[i].x < *min_x))
+		{
+			*min_x = ennemy_tab[i].x;
+		}
+	}
 }
