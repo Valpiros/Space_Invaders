@@ -1,0 +1,131 @@
+/*
+ * list.c
+ *
+ *  Created on: 18 févr. 2019
+ *      Author: valen
+ */
+
+#include "list.h"
+#include "heap.h"
+
+unsigned long list_length (T_list *list)
+{
+	//get the length of the list
+	unsigned long ret = 0;
+	T_element *p;
+
+	p = list->start;
+	while (p)
+	{
+		p = p->next;
+		ret++;
+	}
+	return ret;
+}
+
+T_element *list_create_element (void *data)
+{
+	//create a list
+	t_element *element = heap_malloc(sizeof(T_element));
+	if (element != NULL)
+	{
+		element->data = data;
+		element->next = NULL;
+		element->previous = NULL;
+	}
+	return element;
+}
+
+void list_append (T_element *element, T_list *list)
+{
+	//add element in the end of the list
+	element->previous = list->end;
+	list->end = element;
+
+	return;
+}
+
+void list_prepend (T_element *element, T_list *list)
+{
+	//add element in the start of the list
+	element->next = list->start;
+	list->start = element;
+}
+
+T_element *list_pop_first (T_list *list)
+{
+	//delete the first element and show it
+
+	//security for at least 1 element
+	if (list->start != NULL)
+	{
+		T_element *popped = list->start;
+
+		//security for at least 2 elements
+		if (list->start->next)
+		{
+			list->start->next->previous = NULL;
+			list->start->next = NULL;
+			list->start = popped->next;
+			return popped;
+		}
+	}
+}
+
+T_element *list_pop_first (T_list *list)
+{
+	//delete the first element and show it
+
+	//security for at least 1 element
+	if (list->end != NULL)
+	{
+		T_element *popped = list->end;
+
+		//security for at least 2 elements
+		if (list->end->previous)
+		{
+			list->end->previous->next = NULL;
+			list->end->previous = NULL;
+			list->end = popped->previous;
+			return popped;
+		}
+	}
+}
+
+void list_insert_at (T_list *list, T_element *element, unsigned long index)
+{
+	//add an element to the chosen index, add will be canceled if not enoguh elements
+
+	if (list->start != NULL)
+	{
+		unsigned long i = 0;
+		T_element *previous_element = list->start;
+		while (previous_element->next != NULL && i < index)
+		{
+			previou_element = previous_element->next;
+			i++;
+		}
+		if (i == index)
+		{
+			element->next = previous_element->next;
+			if (previous_element->next != NULL)
+			{
+				previous_element->next->previous = element;
+				previous_element->next = element;
+			}
+		}
+	}
+	return;
+}
+
+void list_map (T_list *list, T_function *function)
+{
+	while (element != NULL)
+	{
+		function(element->data);
+		element = element->next;
+	}
+
+	return;
+}
+
