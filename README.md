@@ -12,6 +12,8 @@
 * Co-op mode
 
 ## Changelog
+* *25/02/2019* Git repo changed for easier access and commit
+	       Add chain list and memory allocation functions
 * *18/02/2019* Adapting Pseudo-RNG function for larger number of ennemies
                Different ennemy fleets and higly configurable 
 * *10/02/2019* Ennemies are now moving left/right
