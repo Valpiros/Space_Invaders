@@ -13,7 +13,7 @@
 
 ## Changelog
 * *18/02/2019* Adapting Pseudo-RNG function for larger number of ennemies
-*              Different ennemy fleets and higly configurable 
+               Different ennemy fleets and higly configurable 
 * *10/02/2019* Ennemies are now moving left/right
 * *04/02/2019* Adding number of life configuration and view
 * *23/01/2019* Adding the actual project
