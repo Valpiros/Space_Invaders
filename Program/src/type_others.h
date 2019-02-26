@@ -10,6 +10,7 @@
 #include <stm32f4_discovery.h>
 #include <serial.h>
 #include <vt100.h>
+#include <list.h>
 //#include "heap.h"
 
 #ifndef TYPE_OTHERS_H_
@@ -51,18 +52,20 @@ typedef struct {
 
 void move_ship (pos *ship, u_int8 ship_size);
 void serial_putship (void);
-void serial_shoot (shoot_pos *shoot_tab, u_int8 i);
+//void serial_shoot (shoot_pos *shoot_tab, u_int8 i);
 void border_init (void);
-void move_shoots (shoot_pos *shoot_tab);
+void move_shoots (T_list *p_shoot_list);
 void delay (u_int32 a);
 void ennemy_type1 (pos *ennemy_tab, extremum *ennemy);
 void ennemy_type2 (pos *ennemy_tab, extremum *ennemy);
-void ennemy_shooting (pos *ennemy_tab, shoot_pos *shoot_tab);
-void hitbox (pos *ennemy_tab, shoot_pos *shoot_tab, pos *shi, u_int8 *lives);
+void ennemy_shooting (pos *ennemy_tab, T_list *p_shoot_list, pos *ship);
+//void hitbox (pos *ennemy_tab, T_list *p_shoot_list, pos *ship, u_int8 *lives);
 u_int8 Ps_RandomNumberGeneratory (void);
-void ally_shooting (u_int8 *cd_shoot, shoot_pos *shoot_tab);
+void ally_shooting (u_int8 *cd_shoot, T_list *p_shoot_list,  pos *ennemy_tab, pos *ship);
 void ennemy_moving (pos *ennemy_tab, direction *fleet, extremum *ennemy);
 u_int8 ennemy_defeated (pos *ennemy_tab);
 void new_minmax (pos *ennemy_tab, extremum *ennemy);
+void missile_new (T_list *p_shoot_list, team owner, u_int8 X, u_int8 Y);
+void shoot_suppr (shoot_pos *shoot);
 
 #endif /* TYPE_OTHERS_H_ */

@@ -31,10 +31,11 @@ SOFTWARE.
 #include <stdint.h>
 #include <stm32f4xx.h>
 #include <stm32f4_discovery.h>
-#include <serial.h>
+#include "serial.h"
 #include "type_others.h"
-#include <vt100.h>
-//#include "heap.h"
+#include "vt100.h"
+#include "list.h"
+#include "heap.h"
 
 /**
  **===========================================================================
@@ -69,6 +70,11 @@ int main(void)
 
 	u_int8 play = 1;	//start game
 	state game = INIT;
+
+	// Init shoot list
+	T_list shoot_list = {.start = NULL, .end = NULL};
+
+
 	while (play)
 	{
 		switch (game)
@@ -94,14 +100,7 @@ int main(void)
 			direction fleet = right;
 			extremum ennemy ;
 
-			// Init shoot table
-			shoot_pos shoot_tab[50];
-			for (u_int8 i=0; i<=49; i++)
-			{
-				shoot_tab[i].x = 0;
-				shoot_tab[i].y = 0;
-				shoot_tab[i].who = shoot_ennemy;
-			}
+
 
 			// Serial reception init
 			int8 serial_char = serial_get_last_char();
@@ -165,7 +164,7 @@ int main(void)
 				vt100_move (1,1);
 				serial_puts ("Not enough clever, yet~");
 			}
-gg :
+			gg :
 			vt100_move (50,25);
 			serial_puts ("                        ");
 			vt100_move (50,25);
@@ -178,11 +177,11 @@ gg :
 				serial_putchar (a);
 				delay (9000000);
 			}
-				vt100_move(65, 20);
-				serial_putchar (' ');		//clear 3/2/1
+			vt100_move(65, 20);
+			serial_putchar (' ');		//clear 3/2/1
 
-				vt100_move (50,25);
-				serial_puts ("        ");	//clear 'Ready ...'
+			vt100_move (50,25);
+			serial_puts ("        ");	//clear 'Ready ...'
 		case TEST :
 			// for debug only
 
@@ -228,16 +227,16 @@ gg :
 				// Ennemy fleet moving
 				new_minmax (ennemy_tab, &ennemy);
 				ennemy_moving (ennemy_tab, &fleet, &ennemy);
-				ennemy_shooting (ennemy_tab, shoot_tab);
+				ennemy_shooting (ennemy_tab, &shoot_list, &ship);
 
 				// Ship Shooting
-				ally_shooting (&cd_shoot, shoot_tab);
+				ally_shooting (&cd_shoot, &shoot_list, ennemy_tab, &ship);
 
 				// Shoots moving
-				move_shoots (shoot_tab);
+				move_shoots (&shoot_list);
 
 				// Something got hit ?
-				hitbox (ennemy_tab, shoot_tab, &ship, &lives);
+				//hitbox (ennemy_tab, &shoot_list, &ship, &lives);
 
 				// delay, between turns, randomly modifiable for now
 				delay (400000);

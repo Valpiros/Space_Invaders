@@ -22,6 +22,7 @@ void list_append(T_list *list, T_element *element);
 void list_prepend(T_list *list, T_element *element);
 T_element *list_pop_first(T_list *list);
 T_element *list_pop_last(T_list *list);
+T_element *list_pop_at(T_list *list, unsigned long index);
 void list_insert_at(T_list *list, T_element *element, unsigned long index);
 void list_map(T_list *list, T_function function);
 

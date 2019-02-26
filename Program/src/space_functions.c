@@ -7,10 +7,11 @@
 #include <stdint.h>
 #include <stm32f4xx.h>
 #include <stm32f4_discovery.h>
-#include <serial.h>
+#include "serial.h"
 #include "type_others.h"
-#include <vt100.h>
-//#include "heap.h"
+#include "vt100.h"
+#include "list.h"
+#include "heap.h"
 
 void move_ship (pos *ship, u_int8 ship_size)
 {
@@ -48,13 +49,13 @@ void serial_putship (void)
 	return;
 }
 
-void serial_shoot (shoot_pos *shoot_tab, u_int8 i)
+/*void serial_shoot (shoot_pos *shoot_tab, u_int8 i)
 {
 	vt100_move (shoot_tab[i].x,shoot_tab[i].y);
 	serial_puts ("");
 
 	return;
-}
+}*/
 
 void border_init (void)
 {
@@ -156,46 +157,44 @@ void ennemy_type2 (pos *ennemy_tab, extremum *ennemy)
 	return;
 }
 
-void move_shoots (shoot_pos *shoot_tab)
+void move_shoots (T_list *p_shoot_list)
 {
-	u_int8 i = 0;
-
-	while (i <= 49)
+	T_element *p_element = p_shoot_list -> start;
+	shoot_pos *shoot = (shoot_pos *)(p_element->data);
+	u_int8 index = 0;
+	do
 	{
-		if ((shoot_tab[i].x != 0)||(shoot_tab[i].y != 0))
+
+		shoot_suppr (shoot/*(shoot_pos *)(p_element->data)*/);
+
+
+		if (shoot->who == shoot_ennemy)
 		{
-			vt100_move (shoot_tab[i].x,shoot_tab[i].y);
-			serial_puts (" \n\b ");
-			//serial_shoot (shoot_tab, i);
-			if (shoot_tab[i].who == shoot_ennemy)
+			shoot->y += 2;
+			if ((shoot->y == VT100_SCREEN_YMAX-1)||(shoot->y == VT100_SCREEN_YMAX))
 			{
-				shoot_tab[i].y += 2;
-				if ((shoot_tab[i].y == VT100_SCREEN_YMAX-1)||(shoot_tab[i].y == VT100_SCREEN_YMAX))
-				{
-					shoot_tab[i].x = 0;
-					shoot_tab[i].y = 0;
-				}
-				vt100_move (shoot_tab[i].x,shoot_tab[i].y);
-				serial_puts ("|\n\b|");
+				list_pop_at (p_shoot_list, index);
 			}
-			else
-			{
-				shoot_tab[i].y -= 2;
-				if (shoot_tab[i].y == 2)
-				{
-					shoot_tab[i].x = 0;
-					shoot_tab[i].y = 0;
-				}
-				vt100_move (shoot_tab[i].x,shoot_tab[i].y);
-				serial_putchar (186);
-				vt100_move (shoot_tab[i].x,shoot_tab[i].y+1);
-				serial_putchar (186);
-			}
-
-
+			vt100_move (shoot->x,shoot->y);
+			serial_puts ("|\n\b|");
 		}
-		i++;
-	}
+		else
+		{
+			shoot->y -= 2;
+			if (shoot->y == 2)
+			{
+				list_pop_at (p_shoot_list, index);
+			}
+			vt100_move (shoot->x,shoot->y);
+			serial_putchar (186);
+			vt100_move (shoot->x,shoot->y+1);
+			serial_putchar (186);
+		}
+
+		p_element = p_element -> next;
+		shoot = (shoot_pos *)(p_element->data);
+		index++;
+	} while (p_element != NULL);
 
 	return;
 }
@@ -210,24 +209,16 @@ void delay (unsigned long a)
 
 
 
-void ennemy_shooting (pos *ennemy_tab, shoot_pos *shoot_tab)
+void ennemy_shooting (pos *ennemy_tab, T_list *p_shoot_list, pos *ship)
 {
-	u_int8 j = 0;
 	for (u_int8 i = 0; i <= 39; i++)
 	{
 		if (ennemy_tab[i].alive == 1)
 		{
 			if (Ps_RandomNumberGeneratory() <= 20)	// tir ?
 			{
-				while ((shoot_tab[j].x != 0)&&(shoot_tab[j].y != 0) )
-				{
-					j++;											//continue the tab until a clear address to stock the shoot
-				}
-				shoot_tab[j].x = ennemy_tab[i].x+2;
-				shoot_tab[j].y = ennemy_tab[i].y+1;
-				shoot_tab[j].who = shoot_ennemy;
-				vt100_move (shoot_tab[j].x,shoot_tab[j].y);
-				serial_puts ("|\n\b|");
+				missile_new (p_shoot_list, shoot_ennemy, ennemy_tab[i].x+2, ennemy_tab[i].y+1);
+
 			}
 		}
 	}
@@ -243,14 +234,14 @@ u_int8 Ps_RandomNumberGeneratory (void)
 	return PRNG;
 }
 
-void hitbox (pos *ennemy_tab, shoot_pos *shoot_tab, pos *ship, u_int8 *lives)
+/*void hitbox (pos *ennemy_tab, T_list *p_shoot_list, pos *ship, u_int8 *lives)
 {
 	u_int8 ennemy_index;
 	u_int8 shoot_index;
 
 	for (shoot_index = 0; shoot_index <= 49; shoot_index++)	//can witn some time using car exist in struct
 	{
-		if (shoot_tab[shoot_index].who == shoot_ally)
+		if (p_shoot_list[shoot_index].who == shoot_ally)
 		{
 			for (ennemy_index = 0; ennemy_index <= 39; ennemy_index++)	//can win some time with var ennemy total
 			{
@@ -309,25 +300,14 @@ void hitbox (pos *ennemy_tab, shoot_pos *shoot_tab, pos *ship, u_int8 *lives)
 	}
 	return;
 }
-
-void ally_shooting (u_int8 *cd_shoot,shoot_pos *shoot_tab )
+*/
+void ally_shooting (u_int8 *cd_shoot,T_list *p_shoot_list,  pos *ennemy_tab, pos *ship )
 {
-	u_int8 j = 0;
 	*cd_shoot += 1;
 	*cd_shoot %=  7;
 	if (*cd_shoot == 1)
 	{
-		while ((shoot_tab[j].x != 0)&&(shoot_tab[j].y != 0) )
-		{
-			j++;											//continue the tab until a clear adress to stock the shoot
-		}
-		shoot_tab[j].x = ship.x+2;
-		shoot_tab[j].y = ship.y-2;
-		shoot_tab[j].who = shoot_ally;
-		vt100_move (shoot_tab[j].x,shoot_tab[j].y);
-		serial_putchar (186);
-		vt100_move (shoot_tab[j].x,shoot_tab[j].y+1);
-		serial_putchar (186);
+		missile_new (p_shoot_list, shoot_ally, ship->x+2, ship->y-2);
 	}
 	return;
 }
@@ -437,4 +417,42 @@ void new_minmax (pos *ennemy_tab, extremum *ennemy)
 			ennemy->max_y = ennemy_tab[i].y;
 		}
 	}
+}
+
+void missile_new (T_list *p_shoot_list, team owner, u_int8 X, u_int8 Y)
+{
+
+	shoot_pos *p_shoot = heap_malloc (sizeof(shoot_pos));
+	if (p_shoot != NULL)
+	{
+		p_shoot -> x = X;
+		p_shoot -> y = Y;
+		p_shoot -> who = owner;
+
+		T_element *shoot_ele = list_create_element (p_shoot);
+		list_prepend (p_shoot_list, shoot_ele);
+
+		if (owner == shoot_ally)
+		{
+
+			vt100_move (X,Y);
+			serial_putchar (186);
+			vt100_move (X,Y);
+			serial_putchar (186);
+		}
+
+		else
+		{
+			vt100_move (p_shoot->x,p_shoot->y);
+			serial_puts ("|\n\b|");
+		}
+	}
+	return;
+}
+
+void shoot_suppr (shoot_pos *shoot)
+{
+	vt100_move (shoot->x, shoot->y);
+	serial_puts (" \n\b ");
+
 }

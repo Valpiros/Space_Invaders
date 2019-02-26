@@ -65,7 +65,7 @@ void serial_putchar(volatile char c)
 	}
 }
 
-void serial_puts(volatile char *s)
+void serial_puts(const volatile char *s)
 {
 	while (*s)
 		serial_putchar(*s++);
