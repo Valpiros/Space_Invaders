@@ -160,41 +160,49 @@ void ennemy_type2 (pos *ennemy_tab, extremum *ennemy)
 void move_shoots (T_list *p_shoot_list)
 {
 	T_element *p_element = p_shoot_list -> start;
-	shoot_pos *shoot = (shoot_pos *)(p_element->data);
+	shoot_pos *shoot;
 	u_int8 index = 0;
-	do
+	while (p_element != NULL)
 	{
+		shoot = (shoot_pos *)(p_element->data);
+		p_element = p_element -> next;
 
-		shoot_suppr (shoot/*(shoot_pos *)(p_element->data)*/);
-
+		//shoot_suppr (shoot/*(shoot_pos *)(p_element->data)*/);
+		vt100_move (shoot->x, shoot->y);
+		serial_puts (" \n\b ");
 
 		if (shoot->who == shoot_ennemy)
 		{
 			shoot->y += 2;
-			if ((shoot->y == VT100_SCREEN_YMAX-1)||(shoot->y == VT100_SCREEN_YMAX))
+			if (shoot->y >= VT100_SCREEN_YMAX-1)
 			{
 				list_pop_at (p_shoot_list, index);
+				index--;
 			}
+			else
+			{
 			vt100_move (shoot->x,shoot->y);
 			serial_puts ("|\n\b|");
+			}
 		}
 		else
 		{
 			shoot->y -= 2;
-			if (shoot->y == 2)
+			if (shoot->y <= VT100_SCREEN_YMIN+1)
 			{
 				list_pop_at (p_shoot_list, index);
+				index--;
 			}
+			else
+			{
 			vt100_move (shoot->x,shoot->y);
 			serial_putchar (186);
 			vt100_move (shoot->x,shoot->y+1);
 			serial_putchar (186);
+			}
 		}
-
-		p_element = p_element -> next;
-		shoot = (shoot_pos *)(p_element->data);
 		index++;
-	} while (p_element != NULL);
+	}
 
 	return;
 }
@@ -234,34 +242,39 @@ u_int8 Ps_RandomNumberGeneratory (void)
 	return PRNG;
 }
 
-/*void hitbox (pos *ennemy_tab, T_list *p_shoot_list, pos *ship, u_int8 *lives)
+void hitbox (pos *ennemy_tab, T_list *p_shoot_list, pos *ship, u_int8 *lives)
 {
 	u_int8 ennemy_index;
 	u_int8 shoot_index;
+	T_element *p_element = p_shoot_list -> start;
+	shoot_pos *shoot;
 
-	for (shoot_index = 0; shoot_index <= 49; shoot_index++)	//can witn some time using car exist in struct
+	while (p_element != NULL)
 	{
-		if (p_shoot_list[shoot_index].who == shoot_ally)
+		shoot = (shoot_pos *)(p_element->data);
+		p_element = p_element -> next;
+
+		if (shoot->who == shoot_ally)
 		{
-			for (ennemy_index = 0; ennemy_index <= 39; ennemy_index++)	//can win some time with var ennemy total
+			for (ennemy_index = 0; ennemy_index <= 39; ennemy_index++)
 			{
 				if (ennemy_tab[ennemy_index].alive == 1)
 				{
-					if ((ennemy_tab[ennemy_index].y+1 == shoot_tab[shoot_index].y)||(ennemy_tab[ennemy_index].y == shoot_tab[shoot_index].y))
+					if ((ennemy_tab[ennemy_index].y+1 == shoot->y)||(ennemy_tab[ennemy_index].y == shoot->y))
 					{
-						if ((shoot_tab[shoot_index].x >= ennemy_tab[ennemy_index].x)&&(shoot_tab[shoot_index].x <= ennemy_tab[ennemy_index].x+(ennemy_tab[ennemy_index].lenght-1)))
+						if ((shoot->x >= ennemy_tab[ennemy_index].x)&&(shoot->x <= ennemy_tab[ennemy_index].x+(ennemy_tab[ennemy_index].lenght-1)))
 						{
 							vt100_move (ennemy_tab[ennemy_index].x,ennemy_tab[ennemy_index].y);
 							serial_puts ("XXXXXXX");
 							vt100_move (ennemy_tab[ennemy_index].x,ennemy_tab[ennemy_index].y);
 							serial_puts ("       ");
-							vt100_move (shoot_tab[shoot_index].x, shoot_tab[shoot_index].y);
+							vt100_move (shoot->x, shoot->y);
 							serial_puts (" \n\b ");
 							ennemy_tab[ennemy_index].x = 0;
 							ennemy_tab[ennemy_index].y = 0;
 							ennemy_tab[ennemy_index].alive = 0;
-							shoot_tab[shoot_index].x = 0;
-							shoot_tab[shoot_index].y = 0;
+							list_pop_at (p_shoot_list, shoot_index);
+							shoot_index--;
 						}
 					}
 				}
@@ -269,9 +282,9 @@ u_int8 Ps_RandomNumberGeneratory (void)
 		}
 		else
 		{
-			if ((ship->y-2 == shoot_tab[shoot_index].y)||(ship->y-1 == shoot_tab[shoot_index].y))
+			if ((ship->y-2 == shoot->y)||(ship->y-1 == shoot->y))
 			{
-				if ((shoot_tab[shoot_index].x >= ship->x)&&(shoot_tab[shoot_index].x <= ship->x+(5-1)))
+				if ((shoot->x >= ship->x)&&(shoot->x <= ship->x+(5-1)))
 				{
 					vt100_move (ship->x,ship->y);
 					serial_puts ("XXXXX");
@@ -286,10 +299,10 @@ u_int8 Ps_RandomNumberGeneratory (void)
 						vt100_move (ship->x,ship->y);
 						serial_putship ();
 					}
-					vt100_move (shoot_tab[shoot_index].x, shoot_tab[shoot_index].y);
+					vt100_move (shoot->x, shoot->y);
 					serial_puts (" \n\b ");
-					shoot_tab[shoot_index].x = 0;
-					shoot_tab[shoot_index].y = 0;
+					list_pop_at (p_shoot_list, shoot_index);
+					shoot_index--;
 					// Got hit
 					vt100_move (17+(*lives),2);
 					serial_puts ("  ");
@@ -297,10 +310,11 @@ u_int8 Ps_RandomNumberGeneratory (void)
 				}
 			}
 		}
+		shoot_index++;
 	}
 	return;
 }
-*/
+
 void ally_shooting (u_int8 *cd_shoot,T_list *p_shoot_list,  pos *ennemy_tab, pos *ship )
 {
 	*cd_shoot += 1;

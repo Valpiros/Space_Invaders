@@ -30,6 +30,8 @@ unsigned long list_length(T_list *list)
 void list_append(T_list *list, T_element *element)
 {
 	element->previous = list->end;
+	if (list->end)
+		list->end->next = element;
 	list->end = element;
 	if (list->start == NULL)
 		list->start = element;
@@ -38,6 +40,8 @@ void list_append(T_list *list, T_element *element)
 void list_prepend(T_list *list, T_element *element)
 {
 	element->next = list->start;
+	if (list->start)
+		list->start->previous = element;
 	list->start = element;
 	if (list->end == NULL)
 		list->end = element;
@@ -77,22 +81,29 @@ T_element *list_pop_at(T_list *list, unsigned long index)
 	{
 		T_element *popped = list->start;
 		unsigned long i = 0;
-		while (popped->next != NULL && i < index)
+		while (popped->next != NULL && i != index)
 		{
 			popped = popped->next;
 			i++;
 		}
 		if (i == index)
 		{
-			if (popped->next)
-				popped->next->previous = popped->previous;
-			else
-				list->end = popped->previous->next;
 			if (popped->previous)
+			{
 				popped->previous->next = popped->next;
+				if (popped->next)
+					popped->next->previous = popped->previous;
+				else
+					list->end = popped->previous;
+			}
 			else
-				list->start = popped->next->previous;
-			return popped;
+			{
+				list->start = popped->next;
+				if (popped->next)
+					popped->next->previous = NULL;
+				else
+					list->end = NULL;
+			}
 		}
 	}
 	return NULL;
