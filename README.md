@@ -1,8 +1,10 @@
 ﻿# Future work and improvements
-## Remains to do 
+## Actual work on
 
-* Using chain list on shoots for more fps
-* Add commentaries
+* chain list ships
+* split space_functions into differents .c
+* create menu : play, help, credits
+* create a conf.c for an easy config
 
 ## Later Improvement
 
@@ -12,6 +14,7 @@
 * Co-op mode
 
 ## Changelog
+* *28/05/2019* I am back on the project, Space_invaders v2.0 coming soon~
 * *25/02/2019* Git repo changed for easier access and commit
 * *25/02/2019* Add chain list and memory allocation functions
 * *18/02/2019* Adapting Pseudo-RNG function for larger number of ennemies
