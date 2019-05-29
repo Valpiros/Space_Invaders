@@ -79,80 +79,83 @@ void border_init (void)
 	return;
 }
 
-void ennemy_type1 (pos *ennemy_tab, extremum *ennemy)
+void ennemy_type1 (T_list *p_ship_list, extremum *ennemy)
 {
 	u_int8 i;
-	u_int8 j = 0;
 	u_int8 distance_ship = 1;
 	u_int8 number_ship = 15;
 	u_int8 init_x = 10;
 	u_int8 init_y = 5;
 
+	pos *p_ship;
+	T_element *ship_ele;
+
 	ennemy->min_x = init_x;
 	for (i=0;i<number_ship;i++)
 	{
-		while (ennemy_tab[j].alive == 1)
+		p_ship = heap_malloc (sizeof(pos));
+		if (p_ship != NULL)
 		{
-			j++;
+			p_ship -> lenght = 6;
+			p_ship -> skin[0] = '\\';
+			p_ship -> skin[1] = '-';
+			p_ship -> skin[2] = 'V';
+			p_ship -> skin[3] = 'V';
+			p_ship -> skin[4] = '-';
+			p_ship -> skin[5] = '/';
+			p_ship -> x = init_x+(p_ship -> lenght+distance_ship)*i;
+			p_ship -> y = init_y;
+			p_ship -> alive = 1;
+			vt100_move(init_x+(p_ship -> lenght+distance_ship)*i,init_y);
+			serial_puts(p_ship -> skin);
+
+			ship_ele = list_create_element (p_ship);
+			list_prepend (p_ship_list, ship_ele);
+
+			if (p_ship -> x > ennemy->max_x)
+			{
+				ennemy->max_x = p_ship -> x;
+			}
 		}
-		ennemy_tab[j].lenght = 6;
-		ennemy_tab[j].skin[0] = '\\';
-		ennemy_tab[j].skin[1] = '-';
-		ennemy_tab[j].skin[2] = 'V';
-		ennemy_tab[j].skin[3] = 'V';
-		ennemy_tab[j].skin[4] = '-';
-		ennemy_tab[j].skin[5] = '/';
-		for (u_int8 k = ennemy_tab[j].lenght; k < 7; k++)
-		{
-			ennemy_tab[j].skin[k] = '\0';
-		}
-		ennemy_tab[j].x = init_x+(ennemy_tab[j].lenght+distance_ship)*i;
-		ennemy_tab[j].y = init_y;
-		ennemy_tab[j].alive = 1;
-		vt100_move(init_x+(ennemy_tab[j].lenght+distance_ship)*i,init_y);
-		serial_puts(ennemy_tab[j].skin);
-		if (ennemy_tab[j].x > ennemy->max_x)
-		{
-			ennemy->max_x = ennemy_tab[j].x;
-		}
-		j++;
 	}
 	return;
 }
 
-void ennemy_type2 (pos *ennemy_tab, extremum *ennemy)
+void ennemy_type2 (T_list *p_ship_list, extremum *ennemy)
 {
-	u_int8 i,j;
+	u_int8 i;
 	u_int8 distance_ship = 1;
 	u_int8 number_ship = 20;
 	u_int8 init_x = 25;
 	u_int8 init_y = 7;
 
+	pos *p_ship;
+	T_element *ship_ele;
+
 	ennemy->min_x = init_x;
 	for (i=0;i<number_ship;i++)
 	{
-		while (ennemy_tab[j].alive == 1)
+		p_ship = heap_malloc (sizeof(pos));
+		if (p_ship != NULL)
 		{
-			j++;
+			p_ship -> lenght = 3;
+			p_ship -> skin[0] = '<';
+			p_ship -> skin[1] = 'I';
+			p_ship -> skin[2] = '>';
+			p_ship -> x = init_x+(p_ship -> lenght+distance_ship)*i;
+			p_ship -> y = init_y;
+			p_ship -> alive = 1;
+			vt100_move(init_x+(p_ship -> lenght+distance_ship)*i,init_y);
+			serial_puts(p_ship -> skin);
+
+			ship_ele = list_create_element (p_ship);
+			list_prepend (p_ship_list, ship_ele);
+
+			if (p_ship -> x > ennemy->max_x)
+			{
+				ennemy->max_x = p_ship -> x;
+			}
 		}
-		ennemy_tab[j].lenght = 3;
-		ennemy_tab[j].skin[0] = '<';
-		ennemy_tab[j].skin[1] = 'I';
-		ennemy_tab[j].skin[2] = '>';
-		for (u_int8 k = ennemy_tab[j].lenght; k < 7; k++)
-		{
-			ennemy_tab[j].skin[k] = '\0';
-		}
-		ennemy_tab[j].x = init_x+(ennemy_tab[j].lenght+distance_ship)*i;
-		ennemy_tab[j].y = init_y;
-		ennemy_tab[j].alive = 1;
-		vt100_move(init_x+(ennemy_tab[j].lenght+distance_ship)*i,init_y);
-		serial_puts(ennemy_tab[j].skin);
-		if (ennemy_tab[j].x > ennemy->max_x)
-		{
-			ennemy->max_x = ennemy_tab[j].x;
-		}
-		j++;
 	}
 	return;
 }
@@ -217,20 +220,24 @@ void delay (unsigned long a)
 
 
 
-void ennemy_shooting (pos *ennemy_tab, T_list *p_shoot_list, pos *ship)
+void ennemy_shooting (T_list *p_ship_list, T_list *p_shoot_list, pos *ship)
 {
-	for (u_int8 i = 0; i <= 39; i++)
+	T_element *p_element = p_ship_list -> start;
+	pos *ennemy_ship;
+
+	while (p_element != NULL)
 	{
-		if (ennemy_tab[i].alive == 1)
+		ennemy_ship = (pos *)(p_element->data);
+		p_element = p_element -> next;
+
+		if (Ps_RandomNumberGeneratory() <= 20)	// RNG will shoot ?
 		{
-			if (Ps_RandomNumberGeneratory() <= 20)	// tir ?
-			{
-				missile_new (p_shoot_list, shoot_ennemy, ennemy_tab[i].x+2, ennemy_tab[i].y+1);
+			missile_new (p_shoot_list, shoot_ennemy, ennemy_ship->x+2, ennemy_ship->y+1);
 
-			}
 		}
-	}
 
+
+	}
 	return;
 }
 
@@ -242,42 +249,47 @@ u_int8 Ps_RandomNumberGeneratory (void)
 	return PRNG;
 }
 
-void hitbox (pos *ennemy_tab, T_list *p_shoot_list, pos *ship, u_int8 *lives)
+void hitbox (T_list *p_ship_list, T_list *p_shoot_list, pos *ship, u_int8 *lives)
 {
 	u_int8 ennemy_index;
 	u_int8 shoot_index;
-	T_element *p_element = p_shoot_list -> start;
+	T_element *p_ele_shoot = p_shoot_list -> start;
 	shoot_pos *shoot;
+	T_element *p_ele_ship;
+	pos *ennemy_ship;
 
-	while (p_element != NULL)
+	while (p_ele_shoot != NULL)
 	{
-		shoot = (shoot_pos *)(p_element->data);
-		p_element = p_element -> next;
+		shoot = (shoot_pos *)(p_ele_shoot->data);
+		p_ele_shoot = p_ele_shoot -> next;
 
 		if (shoot->who == shoot_ally)
 		{
-			for (ennemy_index = 0; ennemy_index <= 39; ennemy_index++)
+			p_ele_ship = p_ship_list -> start;
+			ennemy_index = 0;
+			while (p_ele_ship != NULL)
 			{
-				if (ennemy_tab[ennemy_index].alive == 1)
+				ennemy_ship = (pos *)(p_ele_ship->data);
+				p_ele_ship = p_ele_ship -> next;
+
+				if ((ennemy_ship->y+1 == shoot->y)||(ennemy_ship->y == shoot->y))
 				{
-					if ((ennemy_tab[ennemy_index].y+1 == shoot->y)||(ennemy_tab[ennemy_index].y == shoot->y))
+					if ((shoot->x >= ennemy_ship->x)&&(shoot->x <= ennemy_ship->x+(ennemy_ship->lenght-1)))
 					{
-						if ((shoot->x >= ennemy_tab[ennemy_index].x)&&(shoot->x <= ennemy_tab[ennemy_index].x+(ennemy_tab[ennemy_index].lenght-1)))
-						{
-							vt100_move (ennemy_tab[ennemy_index].x,ennemy_tab[ennemy_index].y);
-							serial_puts ("XXXXXXX");
-							vt100_move (ennemy_tab[ennemy_index].x,ennemy_tab[ennemy_index].y);
-							serial_puts ("       ");
-							vt100_move (shoot->x, shoot->y);
-							serial_puts (" \n\b ");
-							ennemy_tab[ennemy_index].x = 0;
-							ennemy_tab[ennemy_index].y = 0;
-							ennemy_tab[ennemy_index].alive = 0;
-							list_pop_at (p_shoot_list, shoot_index);
-							shoot_index--;
-						}
+						vt100_move (ennemy_ship->x,ennemy_ship->y);
+						serial_puts ("XXXXXXX");
+						vt100_move (ennemy_ship->x,ennemy_ship->y);
+						serial_puts ("       ");
+						vt100_move (shoot->x, shoot->y);
+						serial_puts (" \n\b ");
+						list_pop_at (p_ship_list, ennemy_index);
+
+						list_pop_at (p_shoot_list, shoot_index);
+
+						shoot_index--;
 					}
 				}
+				ennemy_index++;
 			}
 		}
 		else
@@ -315,7 +327,7 @@ void hitbox (pos *ennemy_tab, T_list *p_shoot_list, pos *ship, u_int8 *lives)
 	return;
 }
 
-void ally_shooting (u_int8 *cd_shoot,T_list *p_shoot_list,  pos *ennemy_tab, pos *ship )
+void ally_shooting (u_int8 *cd_shoot,T_list *p_shoot_list, pos *ship )
 {
 	*cd_shoot += 1;
 	*cd_shoot %=  7;
@@ -326,37 +338,38 @@ void ally_shooting (u_int8 *cd_shoot,T_list *p_shoot_list,  pos *ennemy_tab, pos
 	return;
 }
 
-void ennemy_moving (pos *ennemy_tab, direction *fleet, extremum *ennemy)
+void ennemy_moving (T_list *p_ship_list, direction *fleet, extremum *ennemy)
 {
-	u_int8 i;
+	T_element *p_element = p_ship_list -> start;
+	pos *ennemy_ship;
 	if (*fleet == right)
 	{
 		if (ennemy->max_x > 117)
 		{
 			*fleet = left;
-			for (i = 0; i < 40; i++)
+			while (p_element != NULL)
 			{
-				if (ennemy_tab[i].alive == 1)
-				{
-					vt100_move (ennemy_tab[i].x, ennemy_tab[i].y);
-					serial_puts ("      ");
-					ennemy_tab[i].y += 1;
-					vt100_move (ennemy_tab[i].x, ennemy_tab[i].y);
-					serial_puts (ennemy_tab[i].skin);
-				}
+				ennemy_ship = (pos *)(p_element->data);
+				p_element = p_element -> next;
+
+				vt100_move (ennemy_ship ->x, ennemy_ship ->y);
+				serial_puts ("      ");
+				ennemy_ship ->y += 1;
+				vt100_move (ennemy_ship ->x, ennemy_ship ->y);
+				serial_puts (ennemy_ship ->skin);
 			}
 		}
 		else
 		{
-			for (i = 0; i < 40; i++)
+			while (p_element != NULL)
 			{
-				if (ennemy_tab[i].x != 0)
-				{
-					vt100_move (ennemy_tab[i].x, ennemy_tab[i].y);
-					serial_putchar (' ');
-					serial_puts (ennemy_tab[i].skin);
-					ennemy_tab[i].x += 1;
-				}
+				ennemy_ship = (pos *)(p_element->data);
+				p_element = p_element -> next;
+
+				vt100_move (ennemy_ship ->x, ennemy_ship ->y);
+				serial_putchar (' ');
+				serial_puts (ennemy_ship ->skin);
+				ennemy_ship ->x += 1;
 			}
 		}
 	}
@@ -365,29 +378,29 @@ void ennemy_moving (pos *ennemy_tab, direction *fleet, extremum *ennemy)
 		if (ennemy->min_x <= 3)
 		{
 			*fleet = right;
-			for (i = 0; i < 40; i++)
+			while (p_element != NULL)
 			{
-				if (ennemy_tab[i].alive == 1)
-				{
-					vt100_move (ennemy_tab[i].x, ennemy_tab[i].y);
-					serial_puts ("      ");
-					ennemy_tab[i].y += 1;
-					vt100_move (ennemy_tab[i].x, ennemy_tab[i].y);
-					serial_puts (ennemy_tab[i].skin);
-				}
+				ennemy_ship = (pos *)(p_element->data);
+				p_element = p_element -> next;
+
+				vt100_move (ennemy_ship ->x, ennemy_ship ->y);
+				serial_puts ("      ");
+				ennemy_ship ->y += 1;
+				vt100_move (ennemy_ship ->x, ennemy_ship ->y);
+				serial_puts (ennemy_ship ->skin);
 			}
 		}
 		else
 		{
-			for (i = 0; i < 40; i++)
+			while (p_element != NULL)
 			{
-				if (ennemy_tab[i].x != 0)
-				{
-					ennemy_tab[i].x -= 1;
-					vt100_move (ennemy_tab[i].x, ennemy_tab[i].y);
-					serial_puts (ennemy_tab[i].skin);
-					serial_putchar (' ');
-				}
+				ennemy_ship = (pos *)(p_element->data);
+				p_element = p_element -> next;
+
+				ennemy_ship ->x -= 1;
+				vt100_move (ennemy_ship ->x, ennemy_ship ->y);
+				serial_puts (ennemy_ship ->skin);
+				serial_putchar (' ');
 			}
 		}
 	}
@@ -395,40 +408,41 @@ void ennemy_moving (pos *ennemy_tab, direction *fleet, extremum *ennemy)
 	return;
 }
 
-u_int8 ennemy_defeated (pos *ennemy_tab)
+u_int8 ennemy_defeated (T_list *p_ship_list)
 {
-	u_int8 i;
-	for (i = 0; i <= 39; i++)
-	{
-		if ((ennemy_tab[i].x != 0)||(ennemy_tab[i].y != 0))
-		{
-			return 0;
-			break;
-		}
-	}
-	return 1;
+
+	T_element *p_element = p_ship_list -> start;
+
+	if (p_element == NULL)
+		return 1;
+	return 0;
 }
 
-void new_minmax (pos *ennemy_tab, extremum *ennemy)
+void new_minmax (T_list *p_ship_list, extremum *ennemy)
 {
-	//RàZ of man and min
-	ennemy->min_x = 125;
+	//RàZ of max and min
+	ennemy->min_x = VT100_SCREEN_WIDTH;
 	ennemy->max_x = 0;
-	int i;
+	T_element *p_element = p_ship_list -> start;
+	pos *ennemy_ship;
+
 	//New value of max and min
-	for (i = 0; i <= 39; i++)
+	while (p_element != NULL)
 	{
-		if (ennemy_tab[i].x > ennemy->max_x)
+		ennemy_ship = (pos *)(p_element->data);
+		p_element = p_element -> next;
+
+		if (ennemy_ship->x > ennemy->max_x)
 		{
-			ennemy->max_x = ennemy_tab[i].x;
+			ennemy->max_x = ennemy_ship->x;
 		}
-		if ((ennemy_tab[i].x != 0) && (ennemy_tab[i].x < ennemy->min_x))
+		if ((ennemy_ship->x != 0) && (ennemy_ship->x < ennemy->min_x))
 		{
-			ennemy->min_x = ennemy_tab[i].x;
+			ennemy->min_x = ennemy_ship->x;
 		}
-		if (ennemy_tab[i].y > ennemy->max_y)
+		if (ennemy_ship->y > ennemy->max_y)
 		{
-			ennemy->max_y = ennemy_tab[i].y;
+			ennemy->max_y = ennemy_ship->y;
 		}
 	}
 }

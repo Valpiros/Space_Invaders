@@ -84,18 +84,13 @@ int main(void)
 			T_list shoot_list = {.start = NULL, .end = NULL};
 
 			//	Init Ennemy fleet
-			pos ennemy_tab[40];
+			T_list ship_list = {.start = NULL, .end = NULL};
 			u_int8 end_game = 0;
-			for (u_int8 i=0; i<=39; i++)
-			{
-				ennemy_tab[i].x = 0;
-				ennemy_tab[i].y = 0;
-				ennemy_tab[i].alive = 0;
-				for (u_int8 j=0; j<=7; j++)
+			/*	for (u_int8 j=0; j<=7; j++)
 				{
 					ennemy_tab[i].skin[j] = 0;
 				}
-			}
+			}*/
 			direction fleet = right;
 			extremum ennemy ;
 
@@ -212,8 +207,8 @@ int main(void)
 			ennemy.max_x = 0;
 			ennemy.max_y = 0;
 
-			ennemy_type1 (ennemy_tab,  &ennemy);
-			ennemy_type2 (ennemy_tab,  &ennemy);
+			ennemy_type1 (&ship_list,  &ennemy);
+			ennemy_type2 (&ship_list,  &ennemy);
 
 			//Time before launch (with tIMER soon)
 			delay(12000000);
@@ -225,24 +220,24 @@ int main(void)
 				move_ship (&ship, ship_size);
 
 				// Ennemy fleet moving
-				new_minmax (ennemy_tab, &ennemy);
-				ennemy_moving (ennemy_tab, &fleet, &ennemy);
-				ennemy_shooting (ennemy_tab, &shoot_list, &ship);
+				new_minmax (&ship_list, &ennemy);
+				ennemy_moving (&ship_list, &fleet, &ennemy);
+				ennemy_shooting (&ship_list, &shoot_list, &ship);
 
 				// Ship Shooting
-				ally_shooting (&cd_shoot, &shoot_list, ennemy_tab, &ship);
+				ally_shooting (&cd_shoot, &shoot_list, &ship);
 
 				// Shoots moving
 				move_shoots (&shoot_list);
 
 				// Something got hit ?
-				hitbox (ennemy_tab, &shoot_list, &ship, &lives);
+				hitbox (&ship_list, &shoot_list, &ship, &lives);
 
 				// delay, between turns, randomly modifiable for now
 				delay (400000);
 
 				// game end ?
-				if (ennemy_defeated (ennemy_tab) == 1)
+				if (ennemy_defeated (&ship_list) == 1)
 				{
 					end_game = 1;
 					break;
