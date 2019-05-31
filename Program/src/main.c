@@ -32,11 +32,13 @@ SOFTWARE.
 #include <stm32f4xx.h>
 #include <stm32f4_discovery.h>
 #include "serial.h"
-#include "type_others.h"
+#include "diverse.h"
 #include "vt100.h"
 #include "list.h"
 #include "heap.h"
-
+#include "shoots.h"
+#include "ennemies.h"
+#include "conf.h"
 /**
  **===========================================================================
  **
@@ -207,8 +209,8 @@ int main(void)
 			ennemy.max_x = 0;
 			ennemy.max_y = 0;
 
-			ennemy_type1 (&ship_list,  &ennemy);
-			ennemy_type2 (&ship_list,  &ennemy);
+			ennemy_type1 (&ship_list);
+			ennemy_type2 (&ship_list);
 
 			//Time before launch (with tIMER soon)
 			delay(12000000);

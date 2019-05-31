@@ -5,7 +5,7 @@
 #include "stm32f4xx.h"
 #include "stm32f4_discovery.h"
 #include <serial.h>
-#include <type_others.h>
+#include <diverse.h>
 #include <vt100.h>
 
 void serial_init(uint32_t baudrate);
