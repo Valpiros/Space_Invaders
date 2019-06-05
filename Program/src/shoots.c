@@ -35,8 +35,8 @@ void move_shoots (T_list *p_shoot_list)
 			shoot->y += 2;
 			if (shoot->y >= VT100_SCREEN_YMAX-1)
 			{
-				list_pop_at (p_shoot_list, index);
-				heap_free (p_element, sizeof(shoot_pos));
+
+				heap_free (list_pop_at (p_shoot_list, index), sizeof(shoot_pos));
 				index--;
 			}
 			else
@@ -50,7 +50,8 @@ void move_shoots (T_list *p_shoot_list)
 			shoot->y -= 2;
 			if (shoot->y <= VT100_SCREEN_YMIN+1)
 			{
-				list_pop_at (p_shoot_list, index);
+
+				heap_free (list_pop_at (p_shoot_list, index), sizeof(shoot_pos));
 				index--;
 			}
 			else
@@ -119,11 +120,10 @@ void hitbox (T_list *p_ship_list, T_list *p_shoot_list, pos *ship, u_int8 *lives
 						serial_puts ("       ");
 						vt100_move (shoot->x, shoot->y);
 						serial_puts (" \n\b ");
-						list_pop_at (p_ship_list, ennemy_index);
-						heap_free (p_ele_ship, sizeof(pos));
-						list_pop_at (p_shoot_list, shoot_index);
-						heap_free (p_ele_shoot, sizeof(shoot_pos));
+						heap_free (list_pop_at (p_ship_list, ennemy_index), sizeof(pos));
+						heap_free (list_pop_at (p_shoot_list, shoot_index), sizeof(shoot_pos));
 						shoot_index--;
+						//ennemy_index--;
 					}
 				}
 				ennemy_index++;
@@ -150,7 +150,7 @@ void hitbox (T_list *p_ship_list, T_list *p_shoot_list, pos *ship, u_int8 *lives
 					}
 					vt100_move (shoot->x, shoot->y);
 					serial_puts (" \n\b ");
-					list_pop_at (p_shoot_list, shoot_index);
+					heap_free (list_pop_at (p_shoot_list, shoot_index), sizeof(shoot_pos));
 					shoot_index--;
 					// Got hit
 					vt100_move (17+(*lives),2);

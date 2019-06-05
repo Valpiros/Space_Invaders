@@ -104,6 +104,7 @@ T_element *list_pop_at(T_list *list, unsigned long index)
 				else
 					list->end = NULL;
 			}
+			return popped;
 		}
 	}
 	return NULL;
