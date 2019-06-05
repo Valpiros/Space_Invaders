@@ -36,6 +36,7 @@ void move_shoots (T_list *p_shoot_list)
 			if (shoot->y >= VT100_SCREEN_YMAX-1)
 			{
 				list_pop_at (p_shoot_list, index);
+				heap_free (p_element, sizeof(shoot_pos));
 				index--;
 			}
 			else
@@ -119,9 +120,9 @@ void hitbox (T_list *p_ship_list, T_list *p_shoot_list, pos *ship, u_int8 *lives
 						vt100_move (shoot->x, shoot->y);
 						serial_puts (" \n\b ");
 						list_pop_at (p_ship_list, ennemy_index);
-
+						heap_free (p_ele_ship, sizeof(pos));
 						list_pop_at (p_shoot_list, shoot_index);
-
+						heap_free (p_ele_shoot, sizeof(shoot_pos));
 						shoot_index--;
 					}
 				}
